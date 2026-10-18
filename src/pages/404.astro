@@ -1,0 +1,17 @@
+---
+// i18n: bilingual. One 404 for the whole origin: GitHub Pages may serve it for a missing path
+// under any project site that has no 404 of its own, so it speaks of the domain, not of this page.
+import Base from '../layouts/Base.astro';
+import { href } from '../i18n/site';
+import { NOT_FOUND } from '../data/copy';
+---
+<Base lang="en" path="" title={NOT_FOUND.title} description={NOT_FOUND.en} alternates={false}>
+  <meta slot="head" name="robots" content="noindex" />
+  <section class="section">
+    <div class="wrap">
+      <h1>404</h1>
+      <p class="lead">{NOT_FOUND.en} <a href={href('en')}>Ernesto Rivera, home</a> · <a href="/desks/">Desks</a></p>
+      <p class="lead" lang="es">{NOT_FOUND.es} <a href={href('es')}>Ernesto Rivera, inicio</a> · <a href="/desks/">Desks</a></p>
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,125 @@
+---
+import '../styles/site.css';
+import { UI, LINKS, href, asset, type Lang } from '../i18n/site';
+import { NAV, META } from '../data/copy';
+
+interface Props {
+  lang: Lang;
+  /** Route shared by both languages ('' for home). */
+  path: string;
+  title: string;
+  description: string;
+  /** Pages that are not a language version of a route (the 404) set this to false. */
+  alternates?: boolean;
+  jsonLd?: object;
+}
+const { lang, path, title, description, alternates = true, jsonLd } = Astro.props;
+const other: Lang = lang === 'en' ? 'es' : 'en';
+const t = UI[lang];
+const site = Astro.site!;
+const abs = (l: Lang) => new URL(href(l, path), site).href;
+const og = new URL(asset('og-1200x630.png'), site).href;
+---
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {alternates && (
+      <>
+        <link rel="canonical" href={abs(lang)} />
+        <link rel="alternate" hreflang="en" href={abs('en')} />
+        <link rel="alternate" hreflang="es" href={abs('es')} />
+        <link rel="alternate" hreflang="x-default" href={abs('en')} />
+        <meta property="og:url" content={abs(lang)} />
+      </>
+    )}
+    <link rel="sitemap" href={asset('sitemap-index.xml')} />
+    {/* No favicon yet. "data:," stops a 404 for it on every page. */}
+    <link rel="icon" href="data:," />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Ernesto Rivera" />
+    <meta property="og:locale" content={lang === 'es' ? 'es_BO' : 'en_US'} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={og} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Ernesto Rivera · Mallasa, La Paz" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={og} />
+    <meta name="theme-color" content="#10251a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#173724" media="(prefers-color-scheme: light)" />
+    <script is:inline>
+      // Apply the saved theme before first paint; the system setting is the default.
+      // The key carries a prefix: this site shares one origin (and one localStorage) with every
+      // project site under rivera-ernesto.github.io.
+      document.documentElement.classList.add('js');
+      try {
+        const saved = localStorage.getItem('portfolio:theme');
+        if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+      } catch (e) {}
+    </script>
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip" href="#main">{t.skip}</a>
+    <header class="site-header">
+      <div class="site-header__inner wrap">
+        <a class="mark" href={href(lang)}>ER<span class="sr-only"> · {t.home}</span></a>
+        <nav class="site-nav" aria-label={t.nav}>
+          {NAV.map((item) => <a href={`${href(lang, path)}#${item.id}`}>{item.label[lang]}</a>)}
+        </nav>
+        <div class="header-tools">
+          {alternates && (
+            <a class="lang-switch" href={href(other, path)} hreflang={other} lang={other} aria-label={t.langSwitchLabel}>
+              {t.langSwitch}
+            </a>
+          )}
+          <button class="theme-toggle js-only" type="button" aria-label={t.theme} title={t.themeHint} aria-pressed="false">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path class="sun" d="M12 4V2m0 20v-2m8-8h2M2 12h2m13.66-5.66 1.41-1.41M4.93 19.07l1.41-1.41m0-11.32L4.93 4.93m14.14 14.14-1.41-1.41M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" />
+              <path class="moon" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap site-footer__inner">
+        <p>Ernesto Rivera · Mallasa, La Paz · {META.updated[lang]}</p>
+        <p class="footer-links">
+          <a href={LINKS.github}>GitHub</a>
+          <a href={LINKS.linkedin}>LinkedIn</a>
+          <a href={LINKS.stackoverflow}>Stack Overflow</a>
+          <a href={LINKS.sponsors}>Sponsors</a>
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      const root = document.documentElement;
+      const dark = matchMedia('(prefers-color-scheme: dark)');
+      const toggle = document.querySelector<HTMLButtonElement>('.theme-toggle');
+      const current = () => root.dataset.theme || (dark.matches ? 'dark' : 'light');
+      // The button is "Dark theme": pressed when the page is dark, whatever made it dark.
+      const show = () => toggle?.setAttribute('aria-pressed', String(current() === 'dark'));
+      show();
+      dark.addEventListener('change', show);
+      toggle?.addEventListener('click', () => {
+        const next = current() === 'dark' ? 'light' : 'dark';
+        root.dataset.theme = next;
+        try { localStorage.setItem('portfolio:theme', next); } catch (e) {}
+        show();
+      });
+    </script>
+  </body>
+</html>
