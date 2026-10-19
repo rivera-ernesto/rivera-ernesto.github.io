@@ -1,0 +1,111 @@
+---
+import { Picture } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import { LINKS, type Lang } from '../i18n/site';
+import { META, HERO, NOW, ENGINEERING, EDUCATION, PRACTICE, CONTACT, tx } from '../data/copy';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const site = Astro.site!;
+
+// Structured data for search engines. No worksFor: the page names no employer.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Ernesto Rivera',
+  url: new URL(import.meta.env.BASE_URL, site).href,
+  homeLocation: { '@type': 'Place', name: 'Mallasa, La Paz, Bolivia' },
+  alumniOf: [
+    { '@type': 'CollegeOrUniversity', name: 'Tokyo Institute of Technology' },
+    { '@type': 'CollegeOrUniversity', name: 'University of Geneva' },
+  ],
+  knowsAbout: ['iOS', 'macOS', 'Swift', 'Objective-C', 'Open source', 'Static websites', 'Astro'],
+  knowsLanguage: ['es', 'en', 'fr', 'ja'],
+  sameAs: [LINKS.github, LINKS.linkedin, LINKS.stackoverflow],
+};
+const sizes = '(min-width: 1180px) 360px, (min-width: 720px) 45vw, 100vw';
+---
+<Base lang={lang} path="" title={META.title[lang]} description={META.description[lang]} jsonLd={jsonLd}>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap hero__grid">
+      <div class="hero__text">
+        <p class="eyebrow">{HERO.eyebrow[lang]}</p>
+        <h1 id="hero-title">Ernesto Rivera</h1>
+        <p class="lead">{HERO.lead[lang]}</p>
+        <p class="actions">
+          <a class="button button--primary" href="#work">{HERO.primary[lang]}</a>
+          <a class="button" href="#contact">{HERO.secondary[lang]}</a>
+        </p>
+      </div>
+      <Picture class="hero__photo" src={HERO.photo} alt={HERO.photoAlt[lang]} formats={['avif', 'webp']} fallbackFormat="jpg" quality={72}
+        widths={[480, 800, 1200]} sizes="(min-width: 900px) 520px, 100vw" loading="eager" fetchpriority="high" />
+    </div>
+  </section>
+
+  <section id="work" class="section" aria-labelledby="work-title">
+    <div class="wrap">
+      <p class="eyebrow">{NOW.eyebrow[lang]}</p>
+      <h2 id="work-title">{NOW.title[lang]}</h2>
+      <ul class="cards" role="list">
+        {NOW.projects.map((p) => (
+          <li class="card">
+            <Picture src={p.image} alt={p.alt[lang]} formats={['avif', 'webp']} fallbackFormat="jpg" quality={72} widths={[360, 720]} sizes={sizes} />
+            <div class="card__body">
+              <p class="tag">{p.tag[lang]}{p.status && <span class="status">{p.status[lang]}</span>}</p>
+              <h3>{tx(p.name, lang)}</h3>
+              <p>{p.text[lang]}</p>
+              <p class="links">{p.links.map((l) => <a href={l.href}>{l.label[lang]}</a>)}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section id="engineering" class="section section--band" aria-labelledby="eng-title">
+    <div class="wrap">
+      <p class="eyebrow">{ENGINEERING.eyebrow[lang]}</p>
+      <h2 id="eng-title">{ENGINEERING.title[lang]}</h2>
+      <p class="lead lead--narrow">{ENGINEERING.intro[lang]}</p>
+      <p class="muted small">{ENGINEERING.note[lang]}</p>
+      <ul class="record" role="list">
+        {ENGINEERING.items.map((i) => (
+          <li>
+            <p class="record__years">{tx(i.years, lang)}</p>
+            <div>
+              <h3>{i.href ? <a href={i.href}>{i.title[lang]}</a> : i.title[lang]}</h3>
+              <p>{i.text[lang]}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <div class="two-col">
+        <div>
+          <h2 class="h3">{EDUCATION.eyebrow[lang]}</h2>
+          <ul class="plain" role="list">{EDUCATION.items.map((i) => <li>{i[lang]}</li>)}</ul>
+        </div>
+        <div>
+          <h2 class="h3">{PRACTICE.eyebrow[lang]}</h2>
+          <ul class="plain" role="list">{PRACTICE.items.map((i) => <li>{i[lang]}</li>)}</ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="section" aria-labelledby="contact-title">
+    <div class="wrap contact">
+      <div>
+        <p class="eyebrow">{CONTACT.eyebrow[lang]}</p>
+        <h2 id="contact-title">{CONTACT.title[lang]}</h2>
+        <p class="lead lead--narrow">{CONTACT.text[lang]}</p>
+      </div>
+      <p class="actions">
+        <a class="button button--primary" href={LINKS.linkedin}>LinkedIn</a>
+        <a class="button" href={LINKS.github}>GitHub</a>
+        <a class="button" href={LINKS.stackoverflow}>Stack Overflow</a>
+      </p>
+      <p class="muted"><a href={LINKS.sponsors}>{CONTACT.sponsors[lang]}</a></p>
+    </div>
+  </section>
+</Base>
